@@ -24,6 +24,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import co.sidhant.soccerfield.R;
 
@@ -31,18 +33,24 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private BaseObject3D field;
 	private final SensorManager mSensorManager;
 	private final Sensor mAccelerometer;
+	private float accY;
+	private float accX;
+	private Sphere ball;
+	private float xSpeed;
+	private float ySpeed;
 	
 	public Renderer(Context context) {
 		super(context);
-		mSensorManager = (SensorManager) context.getSystemService(SENSOR_SERVICE);
+		mSensorManager = (SensorManager) context.getSystemService("sensor");
         mAccelerometer = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
 	}
 
 	public void initScene() {
+		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		ALight light = new DirectionalLight();
 		light.setPower(2);
 		light.setPosition(3, 0, 0);
-		mCamera.setPosition(3, -0.17f, 0);
+		mCamera.setPosition(3, -0.19f, 0);
 		mCamera.setLookAt(0, 0, 0);
 		
 		TextureInfo fieldTex = mTextureManager.addTexture(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.sf_texture));
@@ -61,7 +69,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		
 		BaseObject3D goal;
 		
-		Sphere ball = new Sphere(0.05f, 16, 16);
+		ball = new Sphere(0.05f, 16, 16);
 		DiffuseMaterial ballMat = new DiffuseMaterial();
 		ball.setMaterial(ballMat);
 		ball.addTexture(mTextureManager.addTexture(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ball)));
@@ -85,22 +93,103 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
 		super.onSurfaceCreated(gl, config);
+		xSpeed = 0;
+		ySpeed = 0;
 	}
+	
 
 	public void onDrawFrame(GL10 glUnused) {
 		super.onDrawFrame(glUnused);
-//		field.setRotY(field.getRotY() + 0.1f); 
+		
+		//spin the ball
+		float speed = Math.abs(xSpeed) + Math.abs(ySpeed);
+		speed *= 700;
+		float result = (float) Math.toDegrees(Math.atan2(-ySpeed, xSpeed));
+		if(result < 0)
+		{
+			result += 360; 
+		}
+		
+		
+		Log.v("result", Float.toString(result));
+		
+		ball.setRotY(ball.getRotY() + speed);
+		ball.setRotX(result);
+		
+		//move the ball
+		
+		if(ball.getZ() < 0.65f && ball.getZ() > -0.65f)
+		{
+			if(xSpeed < 0.65f && xSpeed > -0.65f)
+			{
+				xSpeed += accX * (0.005 / 60);
+			}
+			else if(xSpeed < 0)
+			{
+				xSpeed = -0.6f;
+			}
+			else if(xSpeed > 0)
+			{
+				xSpeed = 0.6f;
+			}
+			
+			ball.setZ(ball.getZ() + xSpeed);
+		}
+		else
+		{
+			xSpeed = -0.5f * xSpeed;
+			ball.setZ(ball.getZ() + xSpeed);
+		}
+		
+		if(ball.getY() < 1 && ball.getY() > -1)
+		{
+			if(ySpeed < 0.65f && ySpeed > -0.65f)
+			{
+				ySpeed += accY * (0.004 / 60);
+			}
+			else if(ySpeed < 0)
+			{
+				ySpeed = -0.6f;
+			}
+			else if(ySpeed > 0)
+			{
+				ySpeed = 0.6f;
+			}
+			
+			ball.setY(ball.getY() - ySpeed);
+		}
+		else
+		{
+			ySpeed = -0.5f * ySpeed;
+			ball.setY(ball.getY() - ySpeed);
+		}
 	}
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	public void onSensorChanged(SensorEvent event) {
-		// TODO Auto-generated method stub
-		
+		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            if(!(event.values[1] > 10 || event.values[1] < -10 || event.values[0] < -10 || event.values[0] > 10))
+            {
+            	accY =  event.values[1];
+            	accX =  event.values[0];
+            }
+		}
+	}
+	
+	@Override
+	public void onVisibilityChanged(boolean visible)
+	{
+		super.onVisibilityChanged(visible);
+		if(!visible)
+		{
+			mSensorManager.unregisterListener(this);
+		}
+		else
+			mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 	}
 }
