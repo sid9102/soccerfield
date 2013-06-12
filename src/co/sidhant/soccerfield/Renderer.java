@@ -25,7 +25,9 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
+import android.view.VelocityTracker;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import co.sidhant.soccerfield.R;
 
@@ -38,6 +40,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private Sphere ball;
 	private float xSpeed;
 	private float ySpeed;
+	private VelocityTracker velocity;
 	
 	public Renderer(Context context) {
 		super(context);
@@ -110,9 +113,6 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			result += 360; 
 		}
 		
-		
-		Log.v("result", Float.toString(result));
-		
 		ball.setRotY(ball.getRotY() + speed);
 		ball.setRotX(result);
 		
@@ -137,11 +137,26 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		}
 		else
 		{
-			xSpeed = -0.5f * xSpeed;
+			if(Math.abs(xSpeed) > 0.00001f)
+			{
+				xSpeed = -0.5f * xSpeed;
+			}
+			else
+			{
+				xSpeed = 0;
+			}
+			
 			ball.setZ(ball.getZ() + xSpeed);
+			
+			if((ball.getZ() > 0.65f && accX < 0) || (ball.getZ() < -0.65f && accX > 0))
+			{
+				float sign = accX / Math.abs(accX);
+				sign *= 0.01;
+				ball.setZ(ball.getZ() + sign);
+			}
 		}
 		
-		if(ball.getY() < 1 && ball.getY() > -1)
+		if(ball.getY() < 1.1f && ball.getY() > -1.1f)
 		{
 			if(ySpeed < 0.65f && ySpeed > -0.65f)
 			{
@@ -160,14 +175,69 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		}
 		else
 		{
-			ySpeed = -0.5f * ySpeed;
+			if(Math.abs(ySpeed) > 0.01f)
+			{
+				ySpeed = -0.5f * ySpeed;
+			}
+			else
+			{
+				ySpeed = 0;
+			}
+			
 			ball.setY(ball.getY() - ySpeed);
+			
+			if((ball.getY() > 1.1f && accY < 0) || (ball.getY() < -1.1f && accY > 0))
+			{
+				float sign = accY / Math.abs(accY);
+				sign *= 0.01;
+				ball.setY(ball.getY() + sign);
+			}
 		}
 	}
 
 	@Override
 	public void onAccuracyChanged(Sensor arg0, int arg1) {
 		
+	}
+	
+	@Override
+	public void onTouchEvent(MotionEvent event)
+	{
+		int action = event.getAction();
+		if(velocity == null)
+		{
+			velocity = VelocityTracker.obtain();
+		}
+
+		float xVelocity;
+		float yVelocity;
+		if(action == MotionEvent.ACTION_MOVE)
+		{
+			velocity.addMovement(event);
+			velocity.computeCurrentVelocity(1);
+			xVelocity = velocity.getXVelocity();
+			yVelocity = velocity.getYVelocity();
+		}
+		else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_POINTER_UP)
+		{
+			velocity.computeCurrentVelocity(1);
+			xVelocity = velocity.getXVelocity();
+			yVelocity = velocity.getYVelocity();
+			velocity.recycle();
+			velocity = null;
+		}
+		else
+		{
+			velocity.computeCurrentVelocity(1);
+			xVelocity = velocity.getXVelocity();
+			yVelocity = velocity.getYVelocity();
+		}
+		
+		yVelocity /= 500;
+		xVelocity /= 500;
+		
+		xSpeed = -xVelocity;
+		ySpeed = yVelocity;
 	}
 
 	@Override

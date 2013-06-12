@@ -2,16 +2,16 @@
 <resources>
 
     <!-- Application Name -->
-    <string name="app_name">Rajawali Wallpaper Template</string>
+    <string name="app_name">Soccer Field Live Wallpaper</string>
 
     <!-- Name in Live Wallpaper Picker list -->
-    <string name="lwp_name">Rajawali Template</string>
+    <string name="lwp_name">Soccer Field</string>
 
     <!-- Description in Live Wallpaper Picker list -->
-    <string name="lwp_desc">Example wallpaper that uses Rajawali, an open-source OpenGL ES 2.x engine for Android.</string>
+    <string name="lwp_desc">A soccer field with a ball that moves as you tilt your device.</string>
 
     <!-- Author -->
-    <string name="lwp_author">Rajawali Contributors</string>
+    <string name="lwp_author">Sidhant Srikumar</string>
 
     <!-- Quick little message displayed when the Live Wallpaper Picker is opened -->
     <!-- The message text is the prefix, lwp_name, and suffix concatenated -->
