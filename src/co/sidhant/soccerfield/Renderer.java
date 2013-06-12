@@ -137,23 +137,14 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		}
 		else
 		{
-			if(Math.abs(xSpeed) > 0.00001f)
+			if(ball.getZ() < 0)
 			{
-				xSpeed = -0.5f * xSpeed;
+				xSpeed = 0.005f;
 			}
 			else
-			{
-				xSpeed = 0;
-			}
+				xSpeed = -0.005f;
 			
 			ball.setZ(ball.getZ() + xSpeed);
-			
-			if((ball.getZ() > 0.65f && accX < 0) || (ball.getZ() < -0.65f && accX > 0))
-			{
-				float sign = accX / Math.abs(accX);
-				sign *= 0.01;
-				ball.setZ(ball.getZ() + sign);
-			}
 		}
 		
 		if(ball.getY() < 1.1f && ball.getY() > -1.1f)
@@ -175,23 +166,14 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		}
 		else
 		{
-			if(Math.abs(ySpeed) > 0.01f)
+			if(ball.getY() < 0)
 			{
-				ySpeed = -0.5f * ySpeed;
+				ySpeed = -0.01f;
 			}
 			else
-			{
-				ySpeed = 0;
-			}
-			
+				ySpeed = 0.01f;
+			 
 			ball.setY(ball.getY() - ySpeed);
-			
-			if((ball.getY() > 1.1f && accY < 0) || (ball.getY() < -1.1f && accY > 0))
-			{
-				float sign = accY / Math.abs(accY);
-				sign *= 0.01;
-				ball.setY(ball.getY() + sign);
-			}
 		}
 	}
 
@@ -233,8 +215,8 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			yVelocity = velocity.getYVelocity();
 		}
 		
-		yVelocity /= 500;
-		xVelocity /= 500;
+		yVelocity /= 400;
+		xVelocity /= 400;
 		
 		xSpeed = -xVelocity;
 		ySpeed = yVelocity;
@@ -245,8 +227,8 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             if(!(event.values[1] > 10 || event.values[1] < -10 || event.values[0] < -10 || event.values[0] > 10))
             {
-            	accY =  event.values[1];
-            	accX =  event.values[0];
+            	accY =  Math.round(event.values[1]);
+            	accX =  Math.round(event.values[0]);
             }
 		}
 	}
