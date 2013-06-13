@@ -7,24 +7,18 @@ import javax.microedition.khronos.opengles.GL10;
 
 import rajawali.BaseObject3D;
 import rajawali.SerializedObject3D;
-import rajawali.animation.Animation3D;
-import rajawali.animation.RotateAnimation3D;
 import rajawali.lights.ALight;
 import rajawali.lights.DirectionalLight;
 import rajawali.materials.AMaterial;
 import rajawali.materials.DiffuseMaterial;
 import rajawali.materials.SimpleMaterial;
 import rajawali.materials.TextureInfo;
-import rajawali.math.Number3D;
-import rajawali.parser.AParser.ParsingException;
-import rajawali.parser.ObjParser;
-import rajawali.primitives.Cube;
+import rajawali.materials.TextureManager.TextureType;
 import rajawali.primitives.Plane;
 import rajawali.primitives.Sphere;
 import rajawali.renderer.RajawaliRenderer;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -32,12 +26,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.opengl.GLES20;
-import android.util.Log;
 import android.view.MotionEvent;
-import android.view.SurfaceHolder;
 import android.view.VelocityTracker;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import co.sidhant.soccerfield.R;
 
 public class Renderer extends RajawaliRenderer implements SensorEventListener{
@@ -85,10 +75,10 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		
 		scoring = mUserPrefs.getScoring();
 		maxScore = mUserPrefs.getMaxScore();
-		Log.v("maxScore", Integer.toString(maxScore));
 		scoreChanged = true;
 		
-		TextureInfo fieldTex = mTextureManager.addTexture(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.sf_texture));
+		TextureInfo fieldTex = mTextureManager.addEtc1Texture(mContext.getResources().openRawResource(R.drawable.sf_pkm), null, TextureType.DIFFUSE);
+		TextureInfo fieldTexAlpha = mTextureManager.addEtc1Texture(mContext.getResources().openRawResource(R.drawable.sf_pkm_alpha), null, TextureType.ALPHA);
 		SimpleMaterial fieldMat = new SimpleMaterial(AMaterial.ALPHA_MASKING);
 		
 		SerializedObject3D fieldSer = null;
@@ -109,9 +99,10 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		BaseObject3D goal;
 		
 		ball = new Sphere(0.05f, 16, 16);
-		DiffuseMaterial ballMat = new DiffuseMaterial();
+		DiffuseMaterial ballMat = new DiffuseMaterial(); 
 		ball.setMaterial(ballMat);
-		ball.addTexture(mTextureManager.addTexture(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.ball)));
+		TextureInfo ballTex = mTextureManager.addEtc1Texture(mContext.getResources().openRawResource(R.drawable.ball_pkm), null, TextureType.DIFFUSE);
+		ball.addTexture(ballTex); 
 		ball.addLight(light);
 		ball.setX(0.2f);
 		
@@ -139,6 +130,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		goal = new BaseObject3D(goalSer);
 		goal.setMaterial(fieldMat);
 		goal.addTexture(fieldTex);
+		goal.addTexture(fieldTexAlpha);
 		field.addChild(goal);
 		
 		entireView = new BaseObject3D();
@@ -316,8 +308,6 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			{
 				homeScore = 0;
 				awayScore = 0;
-				ball.setY(0);
-				ball.setZ(0);
 				xSpeed = 0;
 				ySpeed = 0;
 			}
@@ -463,12 +453,12 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		scoreC.drawColor(Color.TRANSPARENT);
 		if(scoring)
 		{
-			String homeString = String.format("%2d", homeScore);
+			String homeString = Integer.toString(homeScore);
 			if(homeScore < 10)
 			{
 				homeString += " ";
 			}
-			String awayString = String.format("%2d", awayScore);
+			String awayString = Integer.toString(awayScore);
 			scoreStr = (homeString + "-" + awayString);
 		}
 		else
