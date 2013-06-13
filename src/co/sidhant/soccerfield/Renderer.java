@@ -152,12 +152,10 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		if(width > height)
 		{
 			landscape = true;
-			super.onSurfaceChanged(gl, width, height);
 		}
 		else
 		{
 			landscape = false;
-			super.onSurfaceChanged(gl, width, height);
 		}
 		// Wallpaper is designed to display perfectly on a 1280 x 720 screen, so scale objects accordingly.
 		float scaleY = (float) height / 1280.0f;
@@ -190,6 +188,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		field.setScaleY(scaleY);
 		field.setScaleZ(scaleZ);
 		ball.setScale(scaleY);
+		super.onSurfaceChanged(gl, width, height);
 	}
 	
 	public void onDrawFrame(GL10 glUnused) {
