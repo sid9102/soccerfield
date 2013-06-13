@@ -1,9 +1,12 @@
 package co.sidhant.soccerfield;
 
+import java.io.ObjectInputStream;
+
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import rajawali.BaseObject3D;
+import rajawali.SerializedObject3D;
 import rajawali.animation.Animation3D;
 import rajawali.animation.RotateAnimation3D;
 import rajawali.lights.ALight;
@@ -88,15 +91,20 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		TextureInfo fieldTex = mTextureManager.addTexture(BitmapFactory.decodeResource(mContext.getResources(), R.drawable.sf_texture));
 		SimpleMaterial fieldMat = new SimpleMaterial(AMaterial.ALPHA_MASKING);
 		
-		ObjParser fieldParser = new ObjParser(mContext.getResources(), mTextureManager, R.raw.field);
+		SerializedObject3D fieldSer = null;
 		try {
-			fieldParser.parse();
-			field = fieldParser.getParsedObject();
-			field.setMaterial(fieldMat);
-			field.addTexture(fieldTex); 
-		} catch (ParsingException e) {
+			ObjectInputStream fieldOIS;
+			fieldOIS = new ObjectInputStream(mContext.getResources()
+					.openRawResource(R.raw.fieldser));
+			fieldSer = (SerializedObject3D) fieldOIS
+					.readObject();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		field = new BaseObject3D(fieldSer);
+		field.setMaterial(fieldMat);
+		field.addTexture(fieldTex);
 		
 		BaseObject3D goal;
 		
@@ -117,16 +125,21 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		scorePlane.addTexture(scoreTexture);
 		scorePlane.setRotY(270);
 		
-		ObjParser goalParser = new ObjParser(mContext.getResources(), mTextureManager, R.raw.goal);
+		SerializedObject3D goalSer = null;
 		try {
-			goalParser.parse();
-			goal = goalParser.getParsedObject();
-			goal.setMaterial(fieldMat);
-			goal.addTexture(fieldTex);
-			field.addChild(goal);
-		} catch (ParsingException e) {
+			ObjectInputStream goalOIS;
+			goalOIS = new ObjectInputStream(mContext.getResources()
+					.openRawResource(R.raw.goalser));
+			goalSer = (SerializedObject3D) goalOIS
+					.readObject();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		
+		goal = new BaseObject3D(goalSer);
+		goal.setMaterial(fieldMat);
+		goal.addTexture(fieldTex);
+		field.addChild(goal);
 		
 		entireView = new BaseObject3D();
 		// Use this object to rotate the entire screen if the surface is in landscape
