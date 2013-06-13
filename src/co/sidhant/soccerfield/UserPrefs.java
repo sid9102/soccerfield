@@ -8,6 +8,7 @@ import android.content.SharedPreferences.Editor;
 public class UserPrefs {
 
 	private static final String scoring = "pref_scoring";
+	private static final String maxScore = "pref_maxScore";
 
 	private static UserPrefs mUserPrefs;
 
@@ -33,6 +34,18 @@ public class UserPrefs {
 		mSharedPrefs.edit().putBoolean(scoring, disembody)
 				.commit();
 	}
+	
+	public int getMaxScore()
+	{
+		String maxScoreStr = mSharedPrefs.getString(maxScore, "99");
+		int score = Integer.parseInt(maxScoreStr);
+		if(score > 99 || score < 1)
+		{
+			score = 99;
+			mSharedPrefs.edit().putString(maxScore, "99").commit();
+		}
+		return score;
+	}
 
 	/**
 	 * Good time to verify any data. In this instance I just want to see the
@@ -45,6 +58,20 @@ public class UserPrefs {
 		// This could easily be done in the preferences XML
 		if (!mSharedPrefs.contains(scoring)) {
 			editor.putBoolean(scoring, false);
+		}
+		
+		if (!mSharedPrefs.contains(maxScore)) {
+			editor.putString(maxScore, "99");
+		}
+		else
+		{
+			String maxScoreStr = mSharedPrefs.getString(maxScore, "99");
+			int score = Integer.parseInt(maxScoreStr);
+			if(score > 99 || score < 1)
+			{
+				score = 99;
+				mSharedPrefs.edit().putString(maxScore, "99");
+			}
 		}
 
 		editor.commit();
