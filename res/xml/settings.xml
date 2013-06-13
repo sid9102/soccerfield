@@ -2,7 +2,12 @@
     android:key="rajawalisharedprefs"
     android:title="@string/settings_title" >
 
-    <PreferenceCategory>
+    <PreferenceCategory android:title="@string/pref_cat_main_title" >
+        <CheckBoxPreference
+            android:key="pref_scoring"
+            android:summary="Display the score"
+            android:title="Scoring"
+            android:defaultValue="false" />
     </PreferenceCategory>
 
 </PreferenceScreen>

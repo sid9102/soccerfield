@@ -24,6 +24,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.opengl.GLES20;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -41,6 +42,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private float xSpeed;
 	private float ySpeed;
 	private VelocityTracker velocity;
+	private boolean landscape;
 	
 	public Renderer(Context context) {
 		super(context);
@@ -51,7 +53,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	public void initScene() {
 		mSensorManager.registerListener(this, mAccelerometer, SensorManager.SENSOR_DELAY_NORMAL);
 		ALight light = new DirectionalLight();
-		light.setPower(2);
+		light.setPower(2.5f);
 		light.setPosition(3, 0, 0);
 		mCamera.setPosition(3, -0.19f, 0);
 		mCamera.setLookAt(0, 0, 0);
@@ -86,7 +88,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			goal = goalParser.getParsedObject();
 			goal.setMaterial(fieldMat);
 			goal.addTexture(fieldTex);
-			goal.setTransparent(true);
+			goal.setTransparent(true); 
 			field.addChild(ball);
 			field.addChild(goal);
 		} catch (ParsingException e) {
@@ -95,12 +97,31 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	}
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		if(mViewportHeight < mViewportWidth)
+		{
+			int temp = mViewportHeight;
+			mViewportHeight = mViewportWidth;
+			mViewportWidth = temp;
+		}
 		super.onSurfaceCreated(gl, config);
 		xSpeed = 0;
 		ySpeed = 0;
 	}
 	
-
+	public void onSurfaceChanged(GL10 gl, int width, int height) 
+	{
+		if(width > height)
+		{
+			landscape = true;
+			super.onSurfaceChanged(gl, height, width);
+		}
+		else
+		{
+			landscape = false;
+			super.onSurfaceChanged(gl, width, height);
+		}
+	}
+	
 	public void onDrawFrame(GL10 glUnused) {
 		super.onDrawFrame(glUnused);
 		
@@ -168,7 +189,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		{
 			if(ball.getY() < 0)
 			{
-				ySpeed = -0.01f;
+				ySpeed = -0.01f; 
 			}
 			else
 				ySpeed = 0.01f;
