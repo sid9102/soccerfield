@@ -59,6 +59,8 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private Plane scorePlane;
 	private TextureInfo scoreTexture;
 	private int maxScore;
+	private BaseObject3D entireView;
+	private boolean leftLandscape;
 	
 	public Renderer(Context context) {
 		super(context);
@@ -92,7 +94,6 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			field = fieldParser.getParsedObject();
 			field.setMaterial(fieldMat);
 			field.addTexture(fieldTex); 
-			addChild(field);
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		}
@@ -115,28 +116,27 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		scoreTexture = mTextureManager.addTexture(scoreBitmap);
 		scorePlane.addTexture(scoreTexture);
 		scorePlane.setRotY(270);
-		addChild(scorePlane);
 		
 		ObjParser goalParser = new ObjParser(mContext.getResources(), mTextureManager, R.raw.goal);
 		try {
 			goalParser.parse();
 			goal = goalParser.getParsedObject();
 			goal.setMaterial(fieldMat);
-			goal.addTexture(fieldTex); 
-			field.addChild(ball);
+			goal.addTexture(fieldTex);
 			field.addChild(goal);
 		} catch (ParsingException e) {
 			e.printStackTrace();
 		}
+		
+		entireView = new BaseObject3D();
+		// Use this object to rotate the entire screen if the surface is in landscape
+		entireView.addChild(ball);
+		entireView.addChild(field);
+		entireView.addChild(scorePlane);
+		addChild(entireView);
 	}
 
 	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
-//		if(mViewportHeight < mViewportWidth)
-//		{
-//			int temp = mViewportHeight;
-//			mViewportHeight = mViewportWidth;
-//			mViewportWidth = temp;
-//		}
 		super.onSurfaceCreated(gl, config);
 		xSpeed = 0;
 		ySpeed = 0;
@@ -147,7 +147,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		if(width > height)
 		{
 			landscape = true;
-			super.onSurfaceChanged(gl, height, width);
+			super.onSurfaceChanged(gl, width, height);
 		}
 		else
 		{
@@ -157,8 +157,34 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		// Wallpaper is designed to display perfectly on a 1280 x 720 screen, so scale objects accordingly.
 		float scaleY = (float) height / 1280.0f;
 		float scaleZ = (float) width / 720.0f;
+		if(landscape)
+		{
+			scaleY = (float) width / 1280.0f;
+			scaleY += 0.2f;
+			scaleZ =  (float) height / 720.0f;
+			scaleZ += 0.07f;
+			if(accX > 0)
+			{
+				leftLandscape = true;
+				entireView.setRotX(-90);
+			}
+			else
+			{
+				leftLandscape = false;
+				entireView.setRotX(90);
+			}
+			mCamera.setPosition(2, 0.06f, 0);
+			mCamera.setLookAt(0, 0.06f, 0);
+		}
+		else
+		{
+			entireView.setRotX(0);
+			mCamera.setPosition(3, -0.19f, 0);
+			mCamera.setLookAt(0, 0, 0);
+		}
 		field.setScaleY(scaleY);
 		field.setScaleZ(scaleZ);
+		ball.setScale(scaleY);
 	}
 	
 	public void onDrawFrame(GL10 glUnused) {
@@ -176,9 +202,30 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		ball.setRotY(ball.getRotY() + speed);
 		ball.setRotX(result);
 		
+		float yBound;
+		float zBound;
+		
+		if(landscape)
+		{
+			yBound = (float) mViewportWidth / 1280.0f;
+			yBound += 0.2f;
+			zBound = (float) mViewportHeight / 720.0f;
+			zBound += 0.07f;
+		}
+		else
+		{
+			yBound = (float) mViewportHeight / 1280.0f;
+			zBound = (float) mViewportWidth / 720.0f;
+		}
+		
+		yBound *= 1.1f;
+		float goalBound = 0.2f * zBound;
+		zBound *= 0.65f;
+		
+		
 		//move the ball
 		
-		if(ball.getZ() < 0.65f && ball.getZ() > -0.65f)
+		if(ball.getZ() < zBound && ball.getZ() > -zBound)
 		{
 			if(xSpeed < 0.65f && xSpeed > -0.65f)
 			{
@@ -207,7 +254,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			ball.setZ(ball.getZ() + xSpeed);
 		}
 		
-		if(ball.getY() < 1.1f && ball.getY() > -1.1f)
+		if(ball.getY() < yBound && ball.getY() > -yBound)
 		{
 			if(ySpeed < 0.65f && ySpeed > -0.65f)
 			{
@@ -228,7 +275,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		{
 			if(ball.getY() < 0)
 			{
-				if(ball.getZ() < 0.2f && ball.getZ() > -0.2f && ySpeed > 0)
+				if(ball.getZ() < goalBound && ball.getZ() > -goalBound && ySpeed > 0)
 				{
 					awayScore++;
 					scoreChanged = true;
@@ -237,7 +284,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			}
 			else
 			{
-				if(ball.getZ() < 0.2f && ball.getZ() > -0.2f && ySpeed < 0)
+				if(ball.getZ() < goalBound && ball.getZ() > -goalBound && ySpeed < 0)
 				{
 					homeScore++;
 					scoreChanged = true;
@@ -256,6 +303,10 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			{
 				homeScore = 0;
 				awayScore = 0;
+				ball.setY(0);
+				ball.setZ(0);
+				xSpeed = 0;
+				ySpeed = 0;
 			}
 			generateScoreTexture();
 			mTextureManager.updateTexture(scoreTexture, scoreBitmap);
@@ -282,22 +333,70 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		{
 			velocity.addMovement(event);
 			velocity.computeCurrentVelocity(1);
-			xVelocity = velocity.getXVelocity();
-			yVelocity = velocity.getYVelocity();
+			if(!landscape)
+			{
+				xVelocity = velocity.getXVelocity();
+				yVelocity = velocity.getYVelocity();
+			}
+			else
+			{
+				if(!leftLandscape)
+				{
+					xVelocity = velocity.getYVelocity();
+					yVelocity = -velocity.getXVelocity();
+				}
+				else
+				{
+					xVelocity = -velocity.getYVelocity();
+					yVelocity = velocity.getXVelocity();
+				}
+			}
 		}
 		else if(action == MotionEvent.ACTION_CANCEL || action == MotionEvent.ACTION_POINTER_UP)
 		{
 			velocity.computeCurrentVelocity(1);
-			xVelocity = velocity.getXVelocity();
-			yVelocity = velocity.getYVelocity();
+			if(!landscape)
+			{
+				xVelocity = velocity.getXVelocity();
+				yVelocity = velocity.getYVelocity();
+			}
+			else
+			{
+				if(!leftLandscape)
+				{
+					xVelocity = velocity.getYVelocity();
+					yVelocity = -velocity.getXVelocity();
+				}
+				else
+				{
+					xVelocity = -velocity.getYVelocity();
+					yVelocity = velocity.getXVelocity();
+				}
+			}
 			velocity.recycle();
 			velocity = null;
 		}
 		else
 		{
 			velocity.computeCurrentVelocity(1);
-			xVelocity = velocity.getXVelocity();
-			yVelocity = velocity.getYVelocity();
+			if(!landscape)
+			{
+				xVelocity = velocity.getXVelocity();
+				yVelocity = velocity.getYVelocity();
+			}
+			else
+			{
+				if(!leftLandscape)
+				{
+					xVelocity = velocity.getYVelocity();
+					yVelocity = -velocity.getXVelocity();
+				}
+				else
+				{
+					xVelocity = -velocity.getYVelocity();
+					yVelocity = velocity.getXVelocity();
+				}
+			}
 		}
 		
 		yVelocity /= 400;
@@ -341,24 +440,28 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	
 	private void generateScoreTexture()
 	{
-		scoreBitmap = Bitmap.createBitmap(80, 40, Bitmap.Config.ARGB_8888);
+		scoreBitmap = Bitmap.createBitmap(128, 64, Bitmap.Config.ARGB_8888);
 		scoreC = new Canvas(scoreBitmap);
 		Paint scorePaint = new Paint();
 		scorePaint.setColor(Color.WHITE);
-		scorePaint.setTextSize(25);
+		scorePaint.setTextSize(40);
 		scorePaint.setAntiAlias(true);
-		scorePaint.setAlpha(230);
+		scorePaint.setAlpha(220);
 		scoreC.drawColor(Color.TRANSPARENT);
 		if(scoring)
 		{
-			String homeString = String.format("%02d", homeScore);
-			String awayString = String.format("%02d", awayScore);
+			String homeString = String.format("%2d", homeScore);
+			if(homeScore < 10)
+			{
+				homeString += " ";
+			}
+			String awayString = String.format("%2d", awayScore);
 			scoreStr = (homeString + "-" + awayString);
 		}
 		else
 		{
 			scoreStr = " ";
 		}
-		scoreC.drawText(scoreStr, 6, 35, scorePaint);
+		scoreC.drawText(scoreStr, 10, 50, scorePaint);
 	}
 }

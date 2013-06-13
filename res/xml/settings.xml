@@ -10,7 +10,7 @@
             android:defaultValue="false" />
         <EditTextPreference
             android:key="pref_maxScore"
-            android:summary="Reset the game when a score reaches:"
+            android:summary="Reset the game when a score reaches: "
             android:title="Max Score"
             android:defaultValue="99"
             android:numeric="integer" />
