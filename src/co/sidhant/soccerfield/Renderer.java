@@ -450,20 +450,27 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		scorePaint.setAntiAlias(true);
 		scorePaint.setAlpha(220);
 		scoreC.drawColor(Color.TRANSPARENT);
+		float offset = 10;
 		if(scoring)
 		{
 			String homeString = Integer.toString(homeScore);
 			if(homeScore < 10)
 			{
 				homeString += " ";
+				offset = 18;
 			}
+			
 			String awayString = Integer.toString(awayScore);
+			if(awayScore < 10)
+			{
+				awayString = " " + awayString;
+			}
 			scoreStr = (homeString + "-" + awayString);
 		}
 		else
 		{
 			scoreStr = " ";
 		}
-		scoreC.drawText(scoreStr, 10, 50, scorePaint);
+		scoreC.drawText(scoreStr, offset, 50, scorePaint);
 	}
 }
