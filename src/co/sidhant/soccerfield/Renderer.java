@@ -54,6 +54,8 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private int maxScore;
 	private BaseObject3D entireView;
 	private boolean leftLandscape;
+	public boolean defaultLandscape;
+	private boolean rightPortrait;
 	
 	public Renderer(Context context) {
 		super(context);
@@ -162,6 +164,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		float scaleZ = (float) width / 720.0f;
 		if(landscape)
 		{
+			rightPortrait = true;
 			scaleY = (float) width / 1280.0f;
 			scaleY += 0.2f;
 			scaleZ =  (float) height / 720.0f;
@@ -181,6 +184,14 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		}
 		else
 		{
+			if(accY < 0)
+			{
+				rightPortrait = true;
+			}
+			else
+			{
+				rightPortrait = false;
+			}
 			entireView.setRotX(0);
 			mCamera.setPosition(3, -0.19f, 0);
 			mCamera.setLookAt(0, 0, 0);
@@ -413,8 +424,23 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             if(!(event.values[1] > 10 || event.values[1] < -10 || event.values[0] < -10 || event.values[0] > 10))
             {
-            	accY =  Math.round(event.values[1]);
-            	accX =  Math.round(event.values[0]);
+            	if(!defaultLandscape)
+            	{
+            		accY =  Math.round(event.values[1]);
+            		accX =  Math.round(event.values[0]);
+            	}
+            	else
+            	{
+            		if(rightPortrait)
+            		{
+            			accY =  -Math.round(event.values[0]);
+            		}
+            		else
+            		{
+            			accY =  Math.round(event.values[0]);
+            		}
+            		accX =  Math.round(event.values[1]);
+            	}
             }
 		}
 	}
