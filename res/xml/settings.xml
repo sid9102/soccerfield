@@ -8,6 +8,12 @@
             android:summary="Display the score"
             android:title="Scoring"
             android:defaultValue="true" />
+        <CheckBoxPreference
+            android:key="pref_ballReset"
+            android:summary="Reset the ball when a goal is scored"
+            android:title="Reset Ball"
+            android:defaultValue="false"
+            android:dependency="pref_scoring" />
         <EditTextPreference
             android:key="pref_maxScore"
             android:summary="Reset the game when a score reaches: "

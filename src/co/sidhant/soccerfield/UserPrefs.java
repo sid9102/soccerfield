@@ -9,6 +9,7 @@ public class UserPrefs {
 
 	private static final String scoring = "pref_scoring";
 	private static final String maxScore = "pref_maxScore";
+	private static final String ballReset = "pref_ballReset";
 
 	private static UserPrefs mUserPrefs;
 
@@ -33,6 +34,11 @@ public class UserPrefs {
 	public void setScoring(boolean disembody) {
 		mSharedPrefs.edit().putBoolean(scoring, disembody)
 				.commit();
+	}
+	
+	public boolean getBallReset()
+	{
+		return mSharedPrefs.getBoolean(ballReset, false);
 	}
 	
 	public int getMaxScore()

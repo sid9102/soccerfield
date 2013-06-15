@@ -56,6 +56,7 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 	private boolean leftLandscape;
 	public boolean defaultLandscape;
 	private boolean rightPortrait;
+	private boolean ballReset;
 	
 	public Renderer(Context context) {
 		super(context);
@@ -77,6 +78,15 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 		
 		scoring = mUserPrefs.getScoring();
 		maxScore = mUserPrefs.getMaxScore();
+		if(scoring)
+		{
+			ballReset = mUserPrefs.getBallReset();
+		}
+		else
+		{
+			ballReset = false;
+		}
+		
 		scoreChanged = true;
 		
 		TextureInfo fieldTex = mTextureManager.addEtc1Texture(mContext.getResources().openRawResource(R.drawable.sf_pkm), null, TextureType.DIFFUSE);
@@ -294,8 +304,18 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 				{
 					awayScore++;
 					scoreChanged = true;
+					if(ballReset)
+					{
+						ball.setY(0);
+						ball.setZ(0);
+					}
 				}
-				ySpeed = -0.01f; 
+				ySpeed = -0.01f;
+				if(ballReset && scoreChanged)
+				{
+					ySpeed = 0;
+					xSpeed = 0;
+				}
 			}
 			else
 			{
@@ -303,8 +323,18 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 				{
 					homeScore++;
 					scoreChanged = true;
+					if(ballReset)
+					{
+						ball.setY(0);
+						ball.setZ(0);
+					}
 				}
 				ySpeed = 0.01f;
+				if(ballReset && scoreChanged)
+				{
+					ySpeed = 0;
+					xSpeed = 0;
+				}
 			}
 			
 			ball.setY(ball.getY() - ySpeed);
@@ -455,6 +485,14 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			awayScore = 0;
 		}
 		scoring = mUserPrefs.getScoring();
+		if(scoring)
+		{
+			ballReset = mUserPrefs.getBallReset();
+		}
+		else
+		{
+			ballReset = false;
+		}
 		scoreChanged = true;
 		maxScore = mUserPrefs.getMaxScore();
 		
