@@ -206,13 +206,9 @@ public class Renderer extends RajawaliRenderer implements SensorEventListener{
 			mCamera.setPosition(3, -0.19f, 0);
 			mCamera.setLookAt(0, 0, 0);
 		}
-        // Fix for smaller devices.
-        if(height > 1280 || width > 720)
-        {
-            field.setScaleY(scaleY);
-		    field.setScaleZ(scaleZ);
-		    ball.setScale(scaleY);
-        }
+		field.setScaleY(scaleY);
+		field.setScaleZ(scaleZ);
+		ball.setScale(scaleY);
 		super.onSurfaceChanged(gl, width, height);
 	}
 	
